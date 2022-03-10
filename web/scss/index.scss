@@ -51,10 +51,10 @@ table {
   animation-name: beans;
   animation-iteration-count: infinite;
   animation-timing-function: linear;
-}
 
-[bean-container] img:nth-child(odd) {
-  animation-name: beans2;
+  & img:nth-child(odd) {
+    animation-name: beans2;
+  }
 }
 
 [confirm-container] {

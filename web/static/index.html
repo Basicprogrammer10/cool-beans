@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <title>C O O L   B E A N S</title>
-    <link href="style.css" rel="stylesheet" type="text/css" />
+    <link href="index.css" rel="stylesheet" type="text/css" />
     <script src="//unpkg.com/alpinejs" defer></script>
     <script defer src="script.js"></script>
   </head>
@@ -14,8 +14,8 @@
       <button x-on:click="beans++">MOAR BEANZ</button>
       <button x-on:click="modal = true;ctn.style.filter = 'blur(10px)'">Place order</button>
       <p><span x-text="beans">5</span> <i>Cool</i> Beans!</p>
-  
-      
+
+
       <div bean-container>
         <template x-for="i in beans">
           <img src="BEANS.png"></img>
