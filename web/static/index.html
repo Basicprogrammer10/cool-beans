@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>C O O L   B E A N S</title>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <script src="//unpkg.com/alpinejs" defer></script>
+    <script defer src="script.js"></script>
+  </head>
+  <body x-data="{beans: 5, modal: false}">
+    <div container >
+      <h1>🧊 Cool Beans 🧊</h1>
+      <button x-on:click="beans++">MOAR BEANZ</button>
+      <button x-on:click="modal = true;ctn.style.filter = 'blur(10px)'">Place order</button>
+      <p><span x-text="beans">5</span> <i>Cool</i> Beans!</p>
+  
+      
+      <div bean-container>
+        <template x-for="i in beans">
+          <img src="BEANS.png"></img>
+        </template>
+      </div>
+    </div>
+
+    <template x-if="modal">
+      <div>
+        <div confirm-modal>
+          <p>Are you sure you want to only buy <span x-text="beans"></span> beans?</p>
+          <button x-on:click="beans *= 2;"><strong>MOAR BEANZ!!!</strong></button>
+          <button x-on:click="localStorage.setItem('beans', beans);window.location = '/checkout';">uh yeah</button>
+        </div>
+        <div confirm-container x-on:click="modal = false;ctn.style.filter = 'blur(0)'" />
+      </div>
+   </template>
+  </body>
+</html>

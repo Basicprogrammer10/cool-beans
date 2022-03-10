@@ -1,0 +1,14 @@
+[package]
+name = "cool_beans"
+version = "0.1.0"
+authors = ["Connor Slade <connor@connorcode.com>"]
+edition = "2018"
+
+[dependencies]
+afire = { git = "https://github.com/basicprogrammer10/afire", branch = "0.4.1", features = ["serve_static", "logging", "tracing"] }
+simple_config_parser = "1.0.0"
+lettre = "0.10.0-rc.3"
+rusqlite = "0.27.0"
+base64 = "0.13.0"
+sha2 = "0.10.2"
+rand = "0.8.5"
