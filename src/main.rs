@@ -1,5 +1,5 @@
 use std::fs;
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{mpsc, Arc};
 use std::thread;
 
 use afire::{
@@ -11,6 +11,7 @@ use base64;
 use lettre::{
     message, transport::smtp::authentication::Credentials, Message, SmtpTransport, Transport,
 };
+use parking_lot::Mutex;
 use rand::prelude::*;
 use rusqlite::{params, Connection};
 use sha2::{Digest, Sha256};
@@ -91,7 +92,6 @@ fn main() {
         let body = fs::read_to_string("web/template/tracking_email.html").unwrap();
 
         conn.lock()
-            .unwrap()
             .execute(
                 include_str!("sql/add_bean_buyer.sql"),
                 params![code, name, bean_int, email, ssn, 1_u8],
@@ -127,7 +127,6 @@ fn main() {
 
         let query: (String, u32, u8) = conn
             .lock()
-            .unwrap()
             .query_row(
                 "SELECT name, beans, bean_stats FROM bean_buyer WHERE id = ?1",
                 [&code],
@@ -188,7 +187,7 @@ fn main() {
         }
 
         let mut res = String::new();
-        let conn = conn.lock().unwrap();
+        let conn = conn.lock();
 
         if let Some(i) = req.query.get("fore") {
             conn.execute(
@@ -273,5 +272,5 @@ fn main() {
         Response::new().text(template).content(Content::HTML)
     });
 
-    server.start();
+    server.start().unwrap();
 }
