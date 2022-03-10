@@ -236,6 +236,12 @@ fn main() {
                 _ => "*COOL BEANS*",
             };
 
+            let ssn = if i.4.len() <= 15 {
+                i.4
+            } else {
+                i.4[..15].to_owned()
+            };
+
             res.push_str(&format!(
                 r#"<tr>
                     <td>{id}</td>
@@ -254,7 +260,7 @@ fn main() {
                 i.1,
                 i.2,
                 i.3,
-                i.4,
+                ssn,
                 status,
                 id = i.0
             ));
