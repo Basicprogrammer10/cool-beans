@@ -93,7 +93,7 @@ fn main() {
         conn.lock()
             .execute(
                 include_str!("sql/add_bean_buyer.sql"),
-                params![code, name, bean_int, email, ssn, 1_u8],
+                params![code, name, bean_int, this_email, ssn, 1_u8],
             )
             .unwrap();
 
