@@ -8,14 +8,30 @@
     <script src="//unpkg.com/alpinejs" defer></script>
     <script defer src="../script.js"></script>
   </head>
-  <body>
+  <body x-data="{beans: localStorage.getItem('beans')}">
     <div container>
       <h1>🧊 Cool Beans 🧊</h1>
 
-      <p>thank you {{NAME}}, your order for {{BEANS}} beans has gone through!</p>
-      <p>please obsessively check your email (<span glow>{{EMAIL}}</span>) untill you recive the tracking number</p>
-      <br><br>
-      <p>feel free to stare at darren the moose while you wait</p>
-      <img moose-image src="/moose.jpeg"></img>
+      <p>Thanks for shoping coolbeans.biz, the premium supplyer of chilled beanes sinces 1993!</p>
+      <p>To compleate your order of <span glow x-text="beans">5</span> beans complete the following form.</p>
+      <button x-on:click="window.location = '/'">go home</button>
+      <button x-on:click="window.location = 'https://connorcode.com'">my web site</button>
+      <br /><br /><br />
+
+      <form action="" method="post">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" required><br/>
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required><br/>
+        <label for="ssn">SSN</label>
+        <input type="text" id="ssn" name="ssn" required><br/>
+        <input type="hidden" name="beans" value="5" bean-info>
+        <input type="hidden" name="check-code" value="{{CHECK_CODE}}">
+        <input type="submit" value="order">
+      </form>
+
+      <script defer>
+        document.querySelector('[bean-info]').outerHTML = `<input type="hidden" name="beans" value="${localStorage.getItem('beans')}" bean-info>`;
+      </script>
   </body>
 </html>

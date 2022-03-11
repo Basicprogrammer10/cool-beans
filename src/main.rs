@@ -47,6 +47,7 @@ fn main() {
     conn.pragma_update(None, "journal_mode", "WAL").unwrap();
     conn.pragma_update(None, "synchronous", "NORMAL").unwrap();
     let pub_conn = Arc::new(Mutex::new(conn));
+    let sub_forms = Mutex::new(Vec::new());
 
     let (tx, rx) = mpsc::sync_channel(16);
     thread::Builder::new()
@@ -79,6 +80,13 @@ fn main() {
         let beans = decode_url(body.get("beans").unwrap());
         let ssn = decode_url(body.get("ssn").unwrap());
         let this_email = decode_url(body.get("email").unwrap());
+        let check_code = decode_url(body.get("check-code").unwrap());
+
+        let mut sub_forms = sub_forms.lock();
+        if check_code.len() == 10 && sub_forms.contains(&check_code) {
+            return Response::new().text("You already submited this form...");
+        }
+        sub_forms.push(check_code);
 
         let bean_int = beans.parse::<u32>().unwrap();
         let code = rand::thread_rng()
@@ -87,7 +95,7 @@ fn main() {
             .collect::<Vec<u8>>();
         let code = String::from_utf8(code).unwrap();
 
-        let template = fs::read_to_string("web/template/checkout.html").unwrap();
+        let template = fs::read_to_string("web/template/checkout_complete.html").unwrap();
         let body = fs::read_to_string("web/template/tracking_email.html").unwrap();
 
         conn.lock()
@@ -116,6 +124,19 @@ fn main() {
             .unwrap();
 
         tx.send(to_send).unwrap();
+        Response::new().text(template).content(Content::HTML)
+    });
+
+    server.route(Method::GET, "/checkout", |_| {
+        let code = rand::thread_rng()
+            .sample_iter(&rand::distributions::Alphanumeric)
+            .take(10)
+            .collect::<Vec<u8>>();
+        let code = String::from_utf8(code).unwrap();
+
+        let template = fs::read_to_string("web/template/checkout.html").unwrap();
+        let template = template.replace("{{CHECK_CODE}}", &code);
+
         Response::new().text(template).content(Content::HTML)
     });
 
