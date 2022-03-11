@@ -52,7 +52,7 @@ table {
   animation-iteration-count: infinite;
   animation-timing-function: linear;
 
-  & img:nth-child(odd) {
+  &:nth-child(odd) {
     animation-name: beans2;
   }
 }

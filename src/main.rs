@@ -7,7 +7,6 @@ use afire::{
     middleware::{MiddleRequest, Middleware},
     Content, Method, Query, Request, Response, ServeStatic, Server,
 };
-use base64;
 use lettre::{
     message, transport::smtp::authentication::Credentials, Message, SmtpTransport, Transport,
 };
@@ -152,18 +151,14 @@ fn main() {
             .iter()
             .enumerate()
         {
-            let rep = if i + 1 <= query.2 as usize {
-                ""
-            } else {
-                "grey"
-            };
+            let rep = if i < query.2 as usize { "" } else { "grey" };
             file = file.replace(&format!("{{{{{}}}}}", e), rep);
         }
 
         Response::new().text(file)
     });
 
-    let conn = pub_conn.clone();
+    let conn = pub_conn;
     server.route(Method::GET, "/admin", move |req| {
         let auth = req.header("Authorization");
         if auth.is_none() {
@@ -173,7 +168,7 @@ fn main() {
         }
 
         let auth = auth.unwrap();
-        let pass = auth.split(" ").nth(1).unwrap();
+        let pass = auth.split(' ').nth(1).unwrap();
         let pass = String::from_utf8(base64::decode(pass).unwrap()).unwrap();
         let pass = pass.split(':').nth(1).unwrap();
 
@@ -256,10 +251,10 @@ fn main() {
                         <a g href="?fore={id}"><i class="fa fa-chevron-right"></i></a>
                     </td>
                     </tr>"#,
-                i.1,
+                i.1.replace("+", " "),
                 i.2,
-                i.3,
-                ssn,
+                i.3.replace("+", " "),
+                ssn.replace("+", " "),
                 status,
                 id = i.0
             ));
