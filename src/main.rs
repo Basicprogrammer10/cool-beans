@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 use std::sync::{mpsc, Arc};
 use std::thread;
@@ -26,6 +27,7 @@ impl Middleware for SimpleLogger {
             req.method,
             req.path
         );
+
         MiddleRequest::Continue
     }
 }
@@ -46,8 +48,9 @@ fn main() {
     conn.execute(include_str!("sql/init.sql"), []).unwrap();
     conn.pragma_update(None, "journal_mode", "WAL").unwrap();
     conn.pragma_update(None, "synchronous", "NORMAL").unwrap();
+
     let pub_conn = Arc::new(Mutex::new(conn));
-    let sub_forms = Mutex::new(Vec::new());
+    let pub_sub_forms = Arc::new(Mutex::new(HashMap::new()));
 
     let (tx, rx) = mpsc::sync_channel(16);
     thread::Builder::new()
@@ -73,20 +76,34 @@ fn main() {
     ServeStatic::new("web/static").attach(&mut server);
     SimpleLogger.attach(&mut server);
 
+    server.error_handler(|_, err| {
+        let template = fs::read_to_string("web/template/error.html").unwrap();
+        let template = template.replace("{{ERROR}}", &err);
+
+        Response::new()
+            .status(500)
+            .text(template)
+            .content(Content::HTML)
+    });
+
     let conn = pub_conn.clone();
+    let sub_forms = pub_sub_forms.clone();
     server.route(Method::POST, "/checkout", move |req| {
         let body = Query::from_body(req.body_string().unwrap()).unwrap();
-        let name = decode_url(body.get("name").unwrap());
-        let beans = decode_url(body.get("beans").unwrap());
-        let ssn = decode_url(body.get("ssn").unwrap());
-        let this_email = decode_url(body.get("email").unwrap());
-        let check_code = decode_url(body.get("check-code").unwrap());
+        let name = decode_url(body.get("name").unwrap()).replace("+", " ");
+        let beans = decode_url(body.get("beans").unwrap()).replace("+", " ");
+        let ssn = decode_url(body.get("ssn").unwrap()).replace("+", " ");
+        let this_email = decode_url(body.get("email").unwrap()).replace("+", " ");
+        let check_code = decode_url(body.get("check-code").unwrap()).replace("+", " ");
 
         let mut sub_forms = sub_forms.lock();
-        if check_code.len() == 10 && sub_forms.contains(&check_code) {
-            return Response::new().text("You already submited this form...");
-        }
-        sub_forms.push(check_code);
+        match sub_forms.get(&check_code) {
+            Some(false) => {
+                let item = sub_forms.get_mut(&check_code).unwrap();
+                *item = true;
+            }
+            Some(true) | None => return Response::new().text("You already submited this form..."),
+        };
 
         let bean_int = beans.parse::<u32>().unwrap();
         let code = rand::thread_rng()
@@ -127,12 +144,14 @@ fn main() {
         Response::new().text(template).content(Content::HTML)
     });
 
-    server.route(Method::GET, "/checkout", |_| {
+    let sub_forms = pub_sub_forms;
+    server.route(Method::GET, "/checkout", move |_| {
         let code = rand::thread_rng()
             .sample_iter(&rand::distributions::Alphanumeric)
             .take(10)
             .collect::<Vec<u8>>();
         let code = String::from_utf8(code).unwrap();
+        sub_forms.lock().insert(code.to_owned(), false);
 
         let template = fs::read_to_string("web/template/checkout.html").unwrap();
         let template = template.replace("{{CHECK_CODE}}", &code);
@@ -272,10 +291,10 @@ fn main() {
                         <a g href="?fore={id}"><i class="fa fa-chevron-right"></i></a>
                     </td>
                     </tr>"#,
-                i.1.replace("+", " "),
+                i.1,
                 i.2,
-                i.3.replace("+", " "),
-                ssn.replace("+", " "),
+                i.3,
+                ssn,
                 status,
                 id = i.0
             ));
